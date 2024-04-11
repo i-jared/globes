@@ -1,4 +1,13 @@
 body {
-	color: #fff;
-	overflow: hidden;
+  color: #fff;
+  overflow: hidden;
+}
+
+p {
+  color: gray;
+  font-size: 25px;
+
+  @media (min-width: 1000px) {
+    font-size: 12px;
+  }
 }

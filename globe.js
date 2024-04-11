@@ -70,11 +70,11 @@ function initListeners() {
   window.addEventListener("wheel", (e) => {
     //increase timefactor on shift + wheeel
     if (e.shiftKey) {
-      timeFactor *= e.deltaY > 0 ? 1.1 : 1.0 / 1.1;
+      timeFactor *= e.deltaY > 0 ? 1.05 : 1.0 / 1.05;
     }
     else if (e.deltaY > 0) {
       obsAngle += 0.03;
-      obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
+      obsAngle = Math.min(0, obsAngle);
     } else {
       obsAngle -= 0.03;
       obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
