@@ -80,6 +80,19 @@ function initListeners() {
       obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
     }
   });
+  window.addEventListener("touchmove", (e) => {
+    //increase timefactor on shift + wheeel
+    if (e.touches.length > 1) {
+      timeFactor *= e.deltaY > 0 ? 1.05 : 1.0 / 1.05;
+    }
+    else if (e.deltaY > 0) {
+      obsAngle += 0.03;
+      obsAngle = Math.min(0, obsAngle);
+    } else {
+      obsAngle -= 0.03;
+      obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
+    }
+  });
 }
 
 draw();
