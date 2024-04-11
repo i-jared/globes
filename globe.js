@@ -1,4 +1,4 @@
-import {bodyVars} from './bodies.js';
+import { bodyVars } from "./bodies.js";
 
 const canvas = document.getElementById("globe");
 canvas.height = window.innerHeight;
@@ -6,9 +6,9 @@ canvas.width = window.innerWidth;
 
 const ctx = canvas.getContext("2d");
 
-// constants
-const OBS_DISTANCE = 1000;
-
+// variable params
+var obsDistance = 1000;
+var obsAngle = 0;
 var timeFactor = 60 * 60 * 5;
 var time = 0;
 
@@ -47,11 +47,16 @@ function draw() {
     bodyVars[key].x = primary
       ? primary.x + body.distance * orbitFactor(time, body.period)
       : body.x;
-    bodyVars[key].y = 0;
+    bodyVars[key].y =
+      (primary ? primary.y : 1) +
+      Math.sin(obsAngle) *
+        (primary
+          ? body.distance * orbitFactor(time, body.period, Math.PI / 2)
+          : body.y);
     bodyVars[key].z = primary
       ? primary.z + body.distance * orbitFactor(time, body.period, Math.PI / 2)
       : body.z;
-    bodyVars[key].r = (body.true_r * (OBS_DISTANCE - body.z)) / OBS_DISTANCE;
+    bodyVars[key].r = (body.true_r * (obsDistance - body.z)) / obsDistance;
   }
 
   time += timeFactor;
@@ -64,9 +69,13 @@ function initListeners() {
   // increase timeFactor on scroll
   window.addEventListener("wheel", (e) => {
     if (e.deltaY > 0) {
-      timeFactor *= timeFactor < 1 ? 1.5 : 1.01;
+      // timeFactor *= timeFactor < 1 ? 1.5 : 1.01;
+      obsAngle += 0.03;
+      obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
     } else {
-      timeFactor /= timeFactor < 1 ? 1.5 : 1.01;
+      // timeFactor /= timeFactor < 1 ? 1.5 : 1.01;
+      obsAngle -= 0.03;
+      obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
     }
   });
 }
