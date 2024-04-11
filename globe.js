@@ -7,7 +7,7 @@ canvas.width = window.innerWidth;
 const ctx = canvas.getContext("2d");
 
 // variable params
-var obsDistance = 1000;
+var obsDistance = 500;
 var obsAngle = 0;
 var timeFactor = 60 * 60 * 5;
 var time = 0;
@@ -48,15 +48,18 @@ function draw() {
       ? primary.x + body.distance * orbitFactor(time, body.period)
       : body.x;
     bodyVars[key].y =
-      (primary ? primary.y : 1) +
+      (primary ? primary.y : 0) +
       Math.sin(obsAngle) *
         (primary
           ? body.distance * orbitFactor(time, body.period, Math.PI / 2)
           : body.y);
-    bodyVars[key].z = primary
-      ? primary.z + body.distance * orbitFactor(time, body.period, Math.PI / 2)
-      : body.z;
-    bodyVars[key].r = (body.true_r * (obsDistance - body.z)) / obsDistance;
+    bodyVars[key].z =
+      (primary ? primary.z : 0) +
+      Math.cos(obsAngle) *
+        (primary
+          ? body.distance * orbitFactor(time, body.period, Math.PI / 2)
+          : body.z);
+    bodyVars[key].r = Math.max(1, body.true_r * (obsDistance - body.z)) / obsDistance;
   }
 
   time += timeFactor;
@@ -70,26 +73,25 @@ function initListeners() {
   window.addEventListener("wheel", (e) => {
     //increase timefactor on shift + wheeel
     if (e.shiftKey) {
-      timeFactor *= e.deltaY > 0 ? 1.05 : 1.0 / 1.05;
-    }
-    else if (e.deltaY > 0) {
-      obsAngle += 0.03;
+      timeFactor *= e.deltaY > 0 ? 1.02 : 1.0 / 1.02;
+    } else if (e.deltaY > 0) {
+      obsAngle += 0.02;
       obsAngle = Math.min(0, obsAngle);
     } else {
-      obsAngle -= 0.03;
+      obsAngle -= 0.02;
       obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
     }
   });
   window.addEventListener("touchmove", (e) => {
+    e.preventDefault();
     //increase timefactor on shift + wheeel
     if (e.touches.length > 1) {
-      timeFactor *= e.deltaY > 0 ? 1.05 : 1.0 / 1.05;
-    }
-    else if (e.deltaY > 0) {
-      obsAngle += 0.03;
+      timeFactor *= e.deltaY > 0 ? 1.02 : 1.0 / 1.02;
+    } else if (e.deltaY > 0) {
+      obsAngle += 0.02;
       obsAngle = Math.min(0, obsAngle);
     } else {
-      obsAngle -= 0.03;
+      obsAngle -= 0.02;
       obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
     }
   });
