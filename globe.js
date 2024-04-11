@@ -7,7 +7,7 @@ canvas.width = window.innerWidth;
 const ctx = canvas.getContext("2d");
 
 // variable params
-var obsDistance = 500;
+var obsDistance = 800;
 var obsAngle = 0;
 var timeFactor = 60 * 60 * 5;
 var time = 0;
