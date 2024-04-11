@@ -59,7 +59,8 @@ function draw() {
         (primary
           ? body.distance * orbitFactor(time, body.period, Math.PI / 2)
           : body.z);
-    bodyVars[key].r = Math.max(1, body.true_r * (obsDistance - body.z)) / obsDistance;
+    bodyVars[key].r =
+      Math.max(1, body.true_r * (obsDistance - body.z)) / obsDistance;
   }
 
   time += timeFactor;
@@ -82,19 +83,42 @@ function initListeners() {
       obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
     }
   });
-  window.addEventListener("touchmove", (e) => {
-    e.preventDefault();
-    //increase timefactor on shift + wheeel
-    if (e.touches.length > 1) {
-      timeFactor *= e.deltaY > 0 ? 1.02 : 1.0 / 1.02;
-    } else if (e.deltaY > 0) {
-      obsAngle += 0.02;
-      obsAngle = Math.min(0, obsAngle);
-    } else {
-      obsAngle -= 0.02;
-      obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
+  window.addEventListener("DOMContentLoaded", function () {
+    var changeTextElement = document.getElementById("changeText");
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+      changeTextElement.textContent = "2-finger scroll to change speed";
     }
   });
+  let startX = 0;
+  let startY = 0;
+  window.addEventListener(
+    "touchstart",
+    (e) => {
+      e.preventDefault();
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    },
+    { passive: false }
+  );
+  window.addEventListener(
+    "touchmove",
+    (e) => {
+      e.preventDefault();
+      let deltaX = e.touches[0].clientX - startX;
+      let deltaY = e.touches[0].clientY - startY;
+      //increase timefactor on shift + wheeel
+      if (e.touches.length > 1) {
+        timeFactor *= deltaY > 0 ? 1.02 : 1.0 / 1.02;
+      } else if (deltaY > 0) {
+        obsAngle += 0.02;
+        obsAngle = Math.min(0, obsAngle);
+      } else {
+        obsAngle -= 0.02;
+        obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
+      }
+    },
+    { passive: false }
+  );
 }
 
 draw();
