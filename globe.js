@@ -66,14 +66,16 @@ function draw() {
 }
 
 function initListeners() {
-  // increase timeFactor on scroll
+  // increase obsAngle on scroll
   window.addEventListener("wheel", (e) => {
-    if (e.deltaY > 0) {
-      // timeFactor *= timeFactor < 1 ? 1.5 : 1.01;
+    //increase timefactor on shift + wheeel
+    if (e.shiftKey) {
+      timeFactor *= e.deltaY > 0 ? 1.1 : 1.0 / 1.1;
+    }
+    else if (e.deltaY > 0) {
       obsAngle += 0.03;
       obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
     } else {
-      // timeFactor /= timeFactor < 1 ? 1.5 : 1.01;
       obsAngle -= 0.03;
       obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
     }
