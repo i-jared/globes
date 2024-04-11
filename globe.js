@@ -96,20 +96,61 @@ var bodyVars = {
 };
 
 function drawGlobe(x, y, r, imageData) {
-  ctx.beginPath();
-  ctx.arc(canvas.width / 2 + x, canvas.height / 2 + y, r, 0, 2 * Math.PI);
-  ctx.lineWidth = 3;
-  ctx.stroke();
-
-  if (false) {
-    // drawImage(x, y, r, imageData);
+  if (imageData) {
+    drawImage(x, y, r, imageData);
   } else {
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2 + x, canvas.height / 2 + y, r, 0, 2 * Math.PI);
+    ctx.lineWidth = 3;
+    ctx.stroke();
     ctx.fillStyle = "white";
     ctx.fill();
   }
 }
 
-function drawImage(bodyX, bodyY, radius, earthImage) {
+function drawImage(bodyX, bodyY, radius, imageData) {
+  const imageWidth = imageData.width;
+  const imageHeight = imageData.height;
+
+  radius = Math.floor(radius);
+  const diameter = radius * 2;
+
+  var start = 0;
+  var end = diameter;
+
+  var newImage = ctx.createImageData(diameter, diameter);
+  for (let i = 0; i < diameter; i++) {
+    for (let j = start; j < end; j++) {
+      const x = j - radius;
+      const y = i - radius;
+
+      const distance = Math.sqrt(x * x + y * y);
+      const longitude = Math.atan2(y, x);
+      const latitude = Math.acos(Math.sqrt(x * x + y * y) / radius);
+
+      const originalX = Math.floor(
+        (longitude / (2 * Math.PI) + 0.5) * imageWidth
+      );
+      const originalY = Math.floor((latitude / Math.PI) * imageHeight);
+
+      const newIndex = (i * diameter + j) * 4;
+      const oldIndex = (originalY * imageWidth + originalX) * 4;
+      for (let k = 0; k < 4; k++) {
+        newImage.data[newIndex + k] =
+          distance + 1 <= radius
+            ? imageData.data[oldIndex + k]
+            : distance - 1 <= radius && k == 3
+            ? 255
+            : 0;
+      }
+    }
+  }
+  // draw the image data
+  ctx.putImageData(
+    newImage,
+    canvas.width / 2 + bodyX - radius,
+    canvas.height / 2 + bodyY - radius
+  );
 }
 
 function orbitFactor(t, period, offset = 0) {
