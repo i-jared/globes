@@ -12,13 +12,15 @@ const EUROPA_RADIUS = 4.49;
 const GANYMEDE_RADIUS = 7.57;
 const CALLISTO_RADIUS = 7.4;
 const SATURN_RADIUS = 167;
+const URANUS_RADIUS = 72.9;
+const NEPTUNE_RADIUS = 70.5;
 
 const EARTH_DISTANCE = SUN_RADIUS + 150;
 const MOON_DISTANCE = EARTH_RADIUS + 50;
 const MARS_DISTANCE = SUN_RADIUS + 250;
 const PHOBOS_DISTANCE = MARS_RADIUS + 5;
 const DEIMOS_DISTANCE = MARS_RADIUS + 10;
-const MERCURY_DISTANCE = SUN_RADIUS + 181944;
+const MERCURY_DISTANCE = SUN_RADIUS + 20;
 const VENUS_DISTANCE = SUN_RADIUS + 50;
 const JUPITER_DISTANCE = SUN_RADIUS + 700;
 const GANYMEDE_DISTANCE = JUPITER_RADIUS + 70;
@@ -26,6 +28,8 @@ const IO_DISTANCE = JUPITER_RADIUS + 20;
 const EUROPA_DISTANCE = JUPITER_RADIUS + 40;
 const CALLISTO_DISTANCE = JUPITER_RADIUS + 200;
 const SATURN_DISTANCE = SUN_RADIUS + 1500;
+const URANUS_DISTANCE = SUN_RADIUS + 2500;
+const NEPTUNE_DISTANCE = SUN_RADIUS + 4500;
 
 const SUN_PERIOD = 1;
 const MERCURY_PERIOD = 58.6 * 24 * 60 * 60;
@@ -41,8 +45,10 @@ const EUROPA_PERIOD = 3.5 * 24 * 60 * 60;
 const GANYMEDE_PERIOD = 7.155 * 24 * 60 * 60;
 const CALLISTO_PERIOD = 16.689 * 24 * 60 * 60;
 const SATURN_PERIOD = 10756 * 24 * 60 * 60;
+const URANUS_PERIOD = 30688 * 24 * 60 * 60;
+const NEPTUNE_PERIOD = 60182 * 24 * 60 * 60;
 
-class Body {
+export class Body {
   static SUN = "sun";
   static EARTH = "earth";
   static MARS = "mars";
@@ -208,5 +214,31 @@ export const bodyVars = {
       inner_distance: SATURN_RADIUS + 100,
       outer_distance: SATURN_RADIUS + 200,
     },
+  },
+  uranus: {
+    x: 0,
+    y: 0,
+    z: 0,
+    r: URANUS_RADIUS,
+    true_r: URANUS_RADIUS,
+    orbit: Body.SUN,
+    period: URANUS_PERIOD,
+    distance: URANUS_DISTANCE,
+    true_distance: URANUS_DISTANCE,
+    ring: {
+      inner_distance: URANUS_RADIUS + 100,
+      outer_distance: URANUS_RADIUS + 200,
+    },
+  },
+  neptune: {
+    x: 0,
+    y: 0,
+    z: 0,
+    r: NEPTUNE_RADIUS,
+    true_r: NEPTUNE_RADIUS,
+    orbit: Body.SUN,
+    period: NEPTUNE_PERIOD,
+    distance: NEPTUNE_DISTANCE,
+    true_distance: NEPTUNE_DISTANCE,
   },
 };

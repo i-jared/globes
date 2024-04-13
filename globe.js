@@ -1,4 +1,4 @@
-import { bodyVars } from "./bodies.js";
+import { bodyVars, Body } from "./bodies.js";
 
 const canvas = document.getElementById("globe");
 canvas.height = window.innerHeight;
@@ -7,7 +7,7 @@ canvas.width = window.innerWidth;
 const ctx = canvas.getContext("2d");
 
 // constants
-// TODO: add an initial zoom level, change planet distances/sizes to generic ratios
+const INITIAL_ZOOM = 0.1;
 const UNIT_DISTANCE = 1000;
 // const UNIT_VIEW = Math.PI / 2;
 // variable params
@@ -18,25 +18,43 @@ var timeFactor = 60 * 60 * 5;
 var time = 0;
 
 function drawGlobe(x, y, r) {
-  ctx.beginPath();
-  ctx.arc(canvas.width / 2 + x, canvas.height / 2 + y, r, 0, 2 * Math.PI);
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  ctx.fillStyle = "white";
-  ctx.fill();
+  if (r > 0.5) {
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2 + x, canvas.height / 2 + y, r, 0, 2 * Math.PI);
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = "white";
+    ctx.fill();
+  }
 }
 
-function drawRing(innerRadius, outerRadius, x, y) {
+function drawRing(innerRadius, outerRadius, x, y, r, trueR) {
   ctx.beginPath();
-  ctx.lineWidth = outerRadius - innerRadius; // TODO: update this based on the angle of view. min 1, max outerRadius - innerRadius
-  ctx.arc(
+
+  const adjRadius = ((r / trueR) * (outerRadius + innerRadius)) / 2;
+  const lineWidth = Math.sin(obsAngle) * adjRadius + 1;
+  const hiddenAngle =
+    -Math.tan(obsAngle) * ((r / trueR) * innerRadius) >= r
+      ? 0
+      : Math.cos(obsAngle) * 2 * Math.asin(r / adjRadius);
+
+  const width = ((r / trueR) * (outerRadius + innerRadius)) / 2;
+  const height = width * -Math.sin(obsAngle);
+  const start = (-Math.PI + hiddenAngle) / 2;
+  const end = (3 * Math.PI - hiddenAngle) / 2;
+  ctx.lineWidth = lineWidth;
+  ctx.strokeStyle = "rgb(220, 220, 220)";
+  ctx.ellipse(
     canvas.width / 2 + x,
     canvas.height / 2 + y,
-    (outerRadius + innerRadius) / 2,
-    0, // TODO: update this based on where it will intersect with the planet
-    2 * Math.PI // TODO: update this based on where it will intersect with the planet
+    width,
+    height,
+    0,
+    start,
+    end
   );
   ctx.stroke();
+  ctx.strokeStyle = "black";
 }
 
 function orbitFactor(t, period, offset = 0) {
@@ -47,10 +65,17 @@ function drawObjects() {
   let values = Object.values(bodyVars);
   values.sort((a, b) => b.z - a.z);
   for (let body of values) {
-    // if (body.z + obsDistance > 0) {}
-    drawGlobe(body.x, body.y, body.r);
+    if (body.r > 0 || body.orbit == Body.SUN || !body.orbit)
+      drawGlobe(body.x, body.y, body.r);
     if (body.ring) {
-      drawRing(body.ring.inner_radius, body.ring.outer_radius, body.x, body.y);
+      drawRing(
+        body.ring.inner_distance,
+        body.ring.outer_distance,
+        body.x,
+        body.y,
+        body.r,
+        body.true_r
+      );
     }
   }
 }
@@ -70,7 +95,10 @@ function draw() {
 
     body.distance = Math.max(
       1,
-      (body.true_distance * (obsDistance - body.z) * UNIT_DISTANCE) /
+      (INITIAL_ZOOM *
+        body.true_distance *
+        (obsDistance - body.z) *
+        UNIT_DISTANCE) /
         (obsDistance * obsDistance)
     );
     body.x = primary
@@ -89,8 +117,8 @@ function draw() {
           ? body.distance * orbitFactor(time, body.period, Math.PI / 2)
           : body.z);
     body.r = Math.max(
-      0,
-      (body.true_r * (obsDistance - body.z) * UNIT_DISTANCE) /
+      body.orbit == Body.SUN ? 0.51 : 0,
+      (INITIAL_ZOOM * body.true_r * (obsDistance - body.z) * UNIT_DISTANCE) /
         (obsDistance * obsDistance)
     );
     // body.r = calculateSize(
@@ -134,8 +162,10 @@ function initListeners() {
   });
   window.addEventListener("DOMContentLoaded", function () {
     var changeTextElement = document.getElementById("changeText");
+    var zoomTextElement = document.getElementById("zoomText");
     if (/Mobi|Android/i.test(navigator.userAgent)) {
       changeTextElement.textContent = "2-finger scroll to change speed";
+      zoomTextElement.textContent = "Pinch to zoom";
     }
   });
   let startX = 0;
