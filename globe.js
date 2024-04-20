@@ -12,6 +12,8 @@ const UNIT_DISTANCE = 1000;
 // const UNIT_VIEW = Math.PI / 2;
 // variable params
 // var fieldOfView = Math.PI / 4;
+var rootX = canvas.width / 2;
+var rootY = canvas.height / 2;
 var obsDistance = UNIT_DISTANCE;
 var obsAngle = 0;
 var timeFactor = 60 * 60 * 5;
@@ -20,7 +22,7 @@ var time = 0;
 function drawGlobe(x, y, r) {
   if (r > 0.5) {
     ctx.beginPath();
-    ctx.arc(canvas.width / 2 + x, canvas.height / 2 + y, r, 0, 2 * Math.PI);
+    ctx.arc(rootX + x, rootY + y, r, 0, 2 * Math.PI);
     ctx.lineWidth = 3;
     ctx.stroke();
     ctx.fillStyle = "white";
@@ -44,15 +46,7 @@ function drawRing(innerRadius, outerRadius, x, y, r, trueR) {
   const end = (3 * Math.PI - hiddenAngle) / 2;
   ctx.lineWidth = lineWidth;
   ctx.strokeStyle = "rgb(220, 220, 220)";
-  ctx.ellipse(
-    canvas.width / 2 + x,
-    canvas.height / 2 + y,
-    width,
-    height,
-    0,
-    start,
-    end
-  );
+  ctx.ellipse(rootX + x, rootY + y, width, height, 0, start, end);
   ctx.stroke();
   ctx.strokeStyle = "black";
 }
@@ -140,6 +134,30 @@ function calculateSize(diameter, distance, canvasWidth) {
 }
 
 function initListeners() {
+  let isDragging = false;
+  let prevX = 0,
+    prevY = 0;
+
+  window.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    prevX = e.clientX;
+    prevY = e.clientY;
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (isDragging) {
+      const deltaX = e.clientX - prevX;
+      const deltaY = e.clientY - prevY;
+      rootX += deltaX;
+      rootY += deltaY;
+      prevX = e.clientX;
+      prevY = e.clientY;
+    }
+  });
+
+  window.addEventListener("mouseup", () => {
+    isDragging = false;
+  });
   // increase obsAngle on scroll
   window.addEventListener("wheel", (e) => {
     //increase timefactor on shift + wheeel
@@ -163,19 +181,32 @@ function initListeners() {
   window.addEventListener("DOMContentLoaded", function () {
     var changeTextElement = document.getElementById("changeText");
     var zoomTextElement = document.getElementById("zoomText");
+    var dragTextElement = document.getElementById("dragText");
     if (/Mobi|Android/i.test(navigator.userAgent)) {
       changeTextElement.textContent = "2-finger scroll to change speed";
       zoomTextElement.textContent = "Pinch to zoom";
+      dragTextElement.remove();
     }
   });
   let startX = 0;
   let startY = 0;
+  let startX2 = 0;
+  let startY2 = 0;
+  let initialPinchDistance = 0;
   window.addEventListener(
     "touchstart",
     (e) => {
       e.preventDefault();
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
+      if (e.touches.length > 1) {
+        startX2 = e.touches[1].clientX;
+        startY2 = e.touches[1].clientY;
+        initialPinchDistance = Math.sqrt(
+          (e.touches[0].clientX - e.touches[1].clientX) ** 2 +
+            (e.touches[0].clientY - e.touches[1].clientY) ** 2
+        );
+      }
     },
     { passive: false }
   );
@@ -183,17 +214,28 @@ function initListeners() {
     "touchmove",
     (e) => {
       e.preventDefault();
-      let deltaX = e.touches[0].clientX - startX;
       let deltaY = e.touches[0].clientY - startY;
       //increase timefactor on shift + wheeel
-      if (e.touches.length > 1) {
-        timeFactor *= deltaY > 0 ? 1.02 : 1.0 / 1.02;
-      } else if (deltaY > 0) {
-        obsAngle += 0.02;
-        obsAngle = Math.min(0, obsAngle);
-      } else {
-        obsAngle -= 0.02;
-        obsAngle = Math.min(0, Math.max(-Math.PI, obsAngle));
+      if (e.touches.length == 2) {
+        let deltaY2 = e.touches[1].clientY - startY2;
+        let distance = Math.sqrt(
+          (e.touches[0].clientX - e.touches[1].clientX) ** 2 +
+            (e.touches[0].clientY - e.touches[1].clientY) ** 2
+        );
+        obsDistance *= initialPinchDistance / distance;
+        timeFactor *=
+          (-deltaY - deltaY2 + startY2 + startY) / (startY + startY2);
+        startY += deltaY;
+        startY2 += deltaY2;
+        initialPinchDistance = distance;
+      } else if (e.touches.length == 1) {
+        if (deltaY > 0) {
+          obsAngle -= 0.02;
+          obsAngle = Math.min(0, Math.max(-Math.PI / 2, obsAngle));
+        } else {
+          obsAngle += 0.02;
+          obsAngle = Math.min(0, obsAngle);
+        }
       }
     },
     { passive: false }
